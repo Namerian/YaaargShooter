@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4610438143141504}
-  - component: {fileID: 114559625262406750}
+  - component: {fileID: 114020104971080490}
   - component: {fileID: 136582857938435978}
   - component: {fileID: 54369095892650902}
   m_Layer: 0
@@ -129,7 +129,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &114559625262406750
+--- !u!114 &114020104971080490
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -137,10 +137,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1042155793842412}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a204894c2e746f4c8a2693aced7e85c, type: 3}
+  m_Script: {fileID: 11500000, guid: caff1a5e3896f4f498f41a1e2c025d7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Rigidbody: {fileID: 54369095892650902}
+  Speed: 20
+  Damage: 25
+  LifeTime: 6
+  ImpactPrefab: {fileID: 100014, guid: 6bd5e996bf032e747a4b787daf85302f, type: 2}
+  Transform: {fileID: 0}
+  OwnerTag: 
 --- !u!136 &136582857938435978
 CapsuleCollider:
   m_ObjectHideFlags: 1

@@ -4,57 +4,64 @@ using UnityEngine;
 
 namespace YaaargShooter
 {
-    //[RequireComponent(typeof(CapsuleCollider))]
     public abstract class CHARACTER : MonoBehaviour
     {
-        // -- CONSTANTS
-
-        [Header("Character")]
-        [SerializeField] private Rigidbody Rigidbody;
-        [SerializeField] private Animator Animator;
-
-        private const float DeadZone = 0.01f;
-
-        public abstract float MaximumForwardWalkingSpeed { get; }
-        public abstract float MaximumForwardRunningSpeed { get; }
-        public abstract float MaximumSidewaysWalkingSpeed { get; }
-        public abstract float MaximumTurningSpeed { get; }
-
-        public abstract int InitialHealth { get; }
-        public abstract float AttackDelay { get; }
-
         // -- ATTRIBUTES
 
-        public Transform Transform { get; private set; }
+        [Header("Character")]
+        [SerializeField] public Animator Animator;
+        [SerializeField] public Transform DetectionTarget;
 
-        private E_CHARACTER_STATE State;
-        public float Health { get; private set; }
+        [SerializeField] public float MaxForwardSpeed;
+        [SerializeField] public float MaxSidewaysSpeed;
+        [SerializeField] public float MaxBackwardSpeed;
+        [SerializeField] public float MaxTurningSpeed;
+
+        [SerializeField] public int InitialHealth;
+        [SerializeField] public float AttackDelay;
+        [SerializeField] public float AttackDuration;
+
+        [SerializeField] public bool HasForwardAnim;
+        [SerializeField] public bool HasSidewaysAnim;
+        [SerializeField] public bool HasDeathAnim;
+        [SerializeField] public bool HasAttackAnim;
+        [SerializeField] public bool HasHitAnim;
+
+
+        [HideInInspector] public GAME Game;
+        [HideInInspector] public float Health;
+        [HideInInspector] public LayerMask LayerMask;
 
         /// <summary>
         /// The velocity of the character in world space.
         /// </summary>
-        protected Vector3 Velocity { get; set; }
+        [HideInInspector] public Vector3 DesiredVelocity;
         /// <summary>
         /// The direction the character wants to face.
         /// </summary>
-        protected Quaternion TargetRotation { get; set; }
+        [HideInInspector] public Quaternion DesiredRotation;
 
-        private float AttackDelayTimer;
-        protected bool WantsToAttack { get; set; }
+        [HideInInspector] public E_CHARACTER_STATE CurrentState = E_CHARACTER_STATE.IDLE;
+        [HideInInspector] public bool CanAttack = true;
+        [HideInInspector] public bool WantsToAttack;
+        [HideInInspector] public bool IsAttacking;
 
         // -- CONSTRUCTORS
 
         protected virtual void Start()
         {
-            Transform = transform;
-
-            State = E_CHARACTER_STATE.IDLE;
             Health = InitialHealth;
+            LayerMask = ~gameObject.layer;
 
-            TargetRotation = Transform.rotation;
+            DesiredRotation = transform.rotation;
         }
 
         // -- INQUIRIES
+
+        public bool IsDead()
+        {
+            return Health <= 0;
+        }
 
         // -- OPERATIONS
 
@@ -69,26 +76,54 @@ namespace YaaargShooter
 
             if (Health <= 0)
             {
-                // DIE
+                if (HasDeathAnim)
+                {
+                    Animator.SetTrigger("Death");
+                }
+
+                OnDeath();
+
+                //StartCoroutine(DeathCoroutine());
+            }
+            else
+            {
+                if (HasHitAnim)
+                {
+                    Animator.SetTrigger("Hit");
+                }
+
+                OnHit();
             }
         }
 
         protected abstract void OnUpdate(float deltaTime);
         protected abstract void DoAttack();
+        protected abstract void OnDeath();
+        protected abstract void OnHit();
 
         private void Update()
         {
-            if (AttackDelayTimer > 0)
-            {
-                AttackDelayTimer = Mathf.Clamp(AttackDelayTimer - Time.deltaTime, 0, float.MaxValue);
-            }
-
             OnUpdate(Time.deltaTime);
 
-            if(AttackDelayTimer == 0 && WantsToAttack)
+            if (CanAttack && WantsToAttack)
             {
                 DoAttack();
-                AttackDelayTimer = AttackDelay;
+
+                CanAttack = false;
+                WantsToAttack = false;
+
+                if (HasAttackAnim)
+                {
+                    Animator.SetTrigger("Attack");
+                    Animator.SetBool("Attacking", true);
+                    IsAttacking = true;
+                }
+
+                StartCoroutine(AttackDelayCoroutine());
+                StartCoroutine(AttackingCoroutine());
+            }
+            else
+            {
                 WantsToAttack = false;
             }
 
@@ -104,43 +139,83 @@ namespace YaaargShooter
 
         private void Move(float deltaTime)
         {
-            Transform.Translate(Transform.InverseTransformDirection(Velocity * deltaTime));
+            if (!IsAttacking)
+            {
+                transform.Translate(transform.InverseTransformDirection(DesiredVelocity * deltaTime));
+            }
         }
 
         private void Turn()
         {
-            
-            Transform.rotation = TargetRotation;
+            if (!IsAttacking)
+            {
+                transform.rotation = DesiredRotation;
+            }
         }
 
-        public void HandleAnimations()
+        private void HandleAnimations()
         {
-            Vector3 velocity_projected_forward = Vector3.Project(Velocity, Transform.forward);
-            Vector3 velocity_projected_sideways = Vector3.Project(Velocity, Transform.right);
+            Vector3 velocity_projected_forward = Vector3.Project(DesiredVelocity, transform.forward);
+            Vector3 velocity_projected_sideways = Vector3.Project(DesiredVelocity, transform.right);
 
             float animator_forward = 0;
             float animator_sideways = 0;
 
-            if(Vector3.Dot(Transform.forward, velocity_projected_forward) > 0)
+            if (Vector3.Dot(transform.forward, velocity_projected_forward) > 0)
             {
-                animator_forward = Mathf.Clamp(velocity_projected_forward.magnitude / MaximumForwardRunningSpeed, 0, 1);
+                animator_forward = Mathf.Clamp(velocity_projected_forward.magnitude / MaxForwardSpeed, 0, 1);
             }
             else
             {
-                animator_forward = Mathf.Clamp(-(velocity_projected_forward.magnitude / MaximumForwardWalkingSpeed), -1, 0);
+                animator_forward = Mathf.Clamp(-(velocity_projected_forward.magnitude / MaxBackwardSpeed), -1, 0);
             }
 
-            if(Vector3.Dot(Transform.right, velocity_projected_sideways) > 0)
+            if (Vector3.Dot(transform.right, velocity_projected_sideways) > 0)
             {
-                animator_sideways = Mathf.Clamp(velocity_projected_sideways.magnitude / MaximumSidewaysWalkingSpeed, 0, 1);
+                animator_sideways = Mathf.Clamp(velocity_projected_sideways.magnitude / MaxSidewaysSpeed, 0, 1);
             }
             else
             {
-                animator_sideways = Mathf.Clamp(-(velocity_projected_sideways.magnitude / MaximumSidewaysWalkingSpeed), -1, 0);
+                animator_sideways = Mathf.Clamp(-(velocity_projected_sideways.magnitude / MaxSidewaysSpeed), -1, 0);
             }
 
-            Animator.SetFloat("Forward", animator_forward);
-            Animator.SetFloat("Sideways", animator_sideways);
+            if (HasForwardAnim)
+            {
+                Animator.SetFloat("Forward", animator_forward);
+            }
+
+            if (HasSidewaysAnim)
+            {
+                Animator.SetFloat("Sideways", animator_sideways);
+            }
+        }
+
+        //private IEnumerator DeathCoroutine()
+        //{
+        //    while (!Animator.GetCurrentAnimatorStateInfo(0).IsName("Exit"))
+        //    {
+        //        yield return null;
+        //    }
+
+        //    OnDeath();
+        //}
+
+        private IEnumerator AttackDelayCoroutine()
+        {
+            yield return new WaitForSeconds(AttackDelay);
+
+            CanAttack = true;
+        }
+
+        private IEnumerator AttackingCoroutine()
+        {
+            yield return new WaitForSeconds(AttackDuration);
+
+            if (HasAttackAnim)
+            {
+                Animator.SetBool("Attacking", false);
+            }
+            IsAttacking = false;
         }
     }
 }    // end of namespace

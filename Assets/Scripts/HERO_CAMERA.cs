@@ -6,7 +6,7 @@ namespace YaaargShooter
 {
     public class HERO_CAMERA : MonoBehaviour
     {
-        // -- CONSTANTS
+        // -- ATTRIBUTES
 
         [SerializeField] private HERO Hero;
         [SerializeField] private Transform Pivot;
@@ -14,12 +14,9 @@ namespace YaaargShooter
         [SerializeField] private float MaximumXAngle = 30;
         [SerializeField] private float MinimumXAngle = -30;
 
-        // -- ATTRIBUTES
-
         public Transform Transform { get; private set; }
 
         private float OrbitXAngle;
-
 
         // -- CONSTRUCTORS
 
@@ -39,7 +36,7 @@ namespace YaaargShooter
         private void Orbit()
         {
             float left_stick_vertical = Input.GetAxis("L_YAxis_1");
-            OrbitXAngle += left_stick_vertical * Hero.MaximumTurningSpeed * Time.deltaTime;
+            OrbitXAngle += left_stick_vertical * Hero.MaxTurningSpeed * Time.deltaTime;
             OrbitXAngle = Mathf.Clamp(OrbitXAngle, MinimumXAngle, MaximumXAngle);
 
             Pivot.localRotation = Quaternion.Euler(OrbitXAngle, 0, 0);
@@ -47,8 +44,8 @@ namespace YaaargShooter
 
         private void Follow()
         {
-            Transform.position = Vector3.Lerp(Transform.position, Hero.Transform.position, Time.deltaTime * 6);
-            Transform.rotation = Hero.Transform.rotation;
+            Transform.position = Vector3.Lerp(Transform.position, Hero.transform.position, Time.deltaTime * 6);
+            Transform.rotation = Hero.transform.rotation;
         }
     }
 }    // end of namespace

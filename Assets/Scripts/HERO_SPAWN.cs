@@ -2,15 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HERO_SPAWN : MonoBehaviour {
+namespace YaaargShooter
+{
+    public class HERO_SPAWN : MonoBehaviour
+    {
+        // -- ATTRIBUTES
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-}
+        [SerializeField] private float ActiveTime = 5;
+
+        // -- CONSTRUCTORS
+
+        void Start()
+        {
+            StartCoroutine(DisappearCoroutine());
+        }
+
+        // -- OPERATIONS
+
+        private IEnumerator DisappearCoroutine()
+        {
+            yield return new WaitForSeconds(ActiveTime);
+
+            Destroy(gameObject);
+        }
+    }
+}    // end of namespace

@@ -6,10 +6,9 @@ namespace YaaargShooter
 {
     public class HERO : CHARACTER
     {
-        // -- CONSTANTS
+        // -- ATTRIBUTES
 
         [Header("Hero")]
-        //[SerializeField] private HERO_CAMERA HeroCamera;
         [SerializeField] private Transform GunMuzzle;
         [SerializeField] private Transform CameraPivot;
         [SerializeField] private Transform CameraPosition;
@@ -20,22 +19,11 @@ namespace YaaargShooter
         [SerializeField] private float DefaultLookDistance = 20;
         [SerializeField] private float LookRayMaxDistance = 100;
 
-        public override float MaximumForwardWalkingSpeed { get { return 3; } }
-        public override float MaximumForwardRunningSpeed { get { return 6; } }
-        public override float MaximumSidewaysWalkingSpeed { get { return 3; } }
-        public override float MaximumTurningSpeed { get { return 180; } }
-
-        public override int InitialHealth { get { return 100; } }
-        public override float AttackDelay { get { return 0.5f; } }
-
-        private LayerMask LayerMask;
-
-        // -- ATTRIBUTES
+        [SerializeField] private GameObject ProjectilePrefab;
 
         private float CurrentCameraDistance;
         private Vector3 LookPosition;
-        private bool RightTriggerPressed;
-
+        [HideInInspector] public int Score;
 
         // -- CONSTRUCTORS
 
@@ -43,56 +31,57 @@ namespace YaaargShooter
         {
             base.Start();
 
-            LayerMask = ~gameObject.layer;
-        }
-
-        // -- INQUIRIES
-
-        public Transform GetPivot()
-        {
-            return CameraPivot;
+            CurrentState = E_CHARACTER_STATE.ATTACKING;
         }
 
         // -- OPERATIONS
 
         protected override void OnUpdate(float deltaTime)
         {
-            // -
-            HandleInput(deltaTime);
+            if (CurrentState == E_CHARACTER_STATE.ATTACKING)
+            {
+                HandleInput(deltaTime);
 
-            // -
-            ComputeLookPoint();
+                ComputeLookPoint();
 
-            // - 
-            HandleCameraCollision();
-            CameraPosition.localPosition = new Vector3(0, 0, Mathf.Lerp(CameraPosition.localPosition.z, CurrentCameraDistance, deltaTime * CameraSpeedZ));
+                HandleCameraCollision();
+                CameraPosition.localPosition = new Vector3(0, 0, Mathf.Lerp(CameraPosition.localPosition.z, CurrentCameraDistance, deltaTime * CameraSpeedZ));
+            }
         }
 
         protected override void DoAttack()
         {
-            var ray = Instantiate(Resources.Load<GameObject>("Prefabs/LaserRay"), GunMuzzle.position, Quaternion.identity).GetComponent<LASER_RAY>();
-            ray.Initialize(tag, LookPosition - GunMuzzle.position);
+            PROJECTILE projectile = Instantiate(ProjectilePrefab, GunMuzzle.position, GunMuzzle.rotation).GetComponent<PROJECTILE>();
+            projectile.transform.forward = (LookPosition - GunMuzzle.position);
+            projectile.OwnerTag = tag;
+        }
+
+        protected override void OnHit()
+        {
+
+        }
+
+        protected override void OnDeath()
+        {
+            CurrentState = E_CHARACTER_STATE.DEAD;
+
+            Game.PlayerDied();
         }
 
         private void HandleInput(float deltaTime)
         {
             Vector2 right_stick = new Vector2(Input.GetAxis("R_XAxis_1"), -Input.GetAxis("R_YAxis_1"));
-            float forwards_speed = right_stick.y > 0 ? MaximumForwardRunningSpeed : MaximumForwardWalkingSpeed;
-            Vector3 forwards_movement = Transform.forward * right_stick.y * forwards_speed;
-            Vector3 sideways_movement = Transform.right * right_stick.x * MaximumSidewaysWalkingSpeed;
-            Velocity = forwards_movement + sideways_movement;
+            float forwards_speed = right_stick.y > 0 ? MaxForwardSpeed : MaxBackwardSpeed;
+            Vector3 forwards_movement = transform.forward * right_stick.y * forwards_speed;
+            Vector3 sideways_movement = transform.right * right_stick.x * MaxSidewaysSpeed;
+            DesiredVelocity = forwards_movement + sideways_movement;
 
-            TargetRotation *= Quaternion.AngleAxis(Input.GetAxis("L_XAxis_1") * MaximumTurningSpeed * deltaTime, Vector3.up);
+            DesiredRotation *= Quaternion.AngleAxis(Input.GetAxis("L_XAxis_1") * MaxTurningSpeed * deltaTime, Vector3.up);
 
             float right_trigger_input = Input.GetAxis("TriggersR_1");
-            if (!RightTriggerPressed && right_trigger_input == 1)
+            if (right_trigger_input == 1)
             {
                 WantsToAttack = true;
-                RightTriggerPressed = true;
-            }
-            else if (right_trigger_input == 0)
-            {
-                RightTriggerPressed = false;
             }
         }
 
@@ -103,8 +92,6 @@ namespace YaaargShooter
             Ray ray = new Ray(origin, direction);
             RaycastHit hit;
 
-            //Debug.DrawRay(ray.origin, ray.direction);
-
             if (Physics.Raycast(ray, out hit, LookRayMaxDistance, LayerMask))
             {
                 LookPosition = hit.point;
@@ -113,8 +100,6 @@ namespace YaaargShooter
             {
                 LookPosition = ray.GetPoint(DefaultLookDistance);
             }
-
-            Debug.DrawLine(CameraPosition.position, LookPosition, Color.blue);
         }
 
         private void HandleCameraCollision()
@@ -127,7 +112,6 @@ namespace YaaargShooter
 
             if (Physics.Raycast(origin, direction, out hit, Mathf.Abs(CurrentCameraDistance), LayerMask))
             {
-                Debug.Log("hit");
                 float distance_to_hit = Vector3.Distance(origin, hit.point);
                 CurrentCameraDistance = -distance_to_hit;
             }

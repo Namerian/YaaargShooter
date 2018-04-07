@@ -7,7 +7,7 @@ namespace YaaargShooter
     public enum E_CHARACTER_STATE
     {
         IDLE,
-        WALKING,
-        RUNNING
+        ATTACKING,
+        DEAD
     }
 }    // end of namespace

@@ -35,18 +35,31 @@ namespace YaaargShooter
             }
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnCollisionEnter(Collision collision)
         {
-            var character = other.GetComponent<CHARACTER>();
+            var character = collision.collider.GetComponent<CHARACTER>();
             if (character != null)
             {
-                character.OnHit(OwnerTag, Damage);
+                character.Hit(OwnerTag, Damage);
             }
 
-            if (!other.isTrigger)
-            {
-                Destroy(gameObject);
-            }
+            Instantiate(Resources.Load("Prefabs/LaserRayImpact"), collision.contacts[0].point, Quaternion.identity);
+            Destroy(gameObject);
         }
+
+        //private void On(Collider other)
+        //{
+        //    var character = other.GetComponent<CHARACTER>();
+        //    if (character != null)
+        //    {
+        //        character.Hit(OwnerTag, Damage);
+        //    }
+
+        //    if (!other.isTrigger)
+        //    {
+        //        Instantiate(Resources.Load("Prefabs/LaserRayImpact"), Transform.position, Quaternion.identity);
+        //        Destroy(gameObject);
+        //    }
+        //}
     }
 }    // end of namespace

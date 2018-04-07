@@ -171,6 +171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Rigidbody: {fileID: 110213330}
+  Animator: {fileID: 1571232580}
   GunMuzzle: {fileID: 584433126}
   CameraPivot: {fileID: 1115719904}
   CameraPosition: {fileID: 379096749}
@@ -606,9 +607,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Hero: {fileID: 110213332}
   Pivot: {fileID: 1115719904}
-  SmoothTime: 0.5
-  MaximumXAngle: 30
-  MinimumXAngle: -30
+  MaximumXAngle: 40
+  MinimumXAngle: -40
 --- !u!4 &1023298607
 Transform:
   m_ObjectHideFlags: 0
@@ -956,6 +956,11 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &1571232580 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 9500000, guid: 3130cca330e8b6f4cb0bb6948ee43c3f,
+    type: 3}
+  m_PrefabInternal: {fileID: 1645085280}
 --- !u!1001 &1645085280
 Prefab:
   m_ObjectHideFlags: 0
@@ -1287,6 +1292,10 @@ Prefab:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: 3130cca330e8b6f4cb0bb6948ee43c3f, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 30dedfb033c039f4fb353740230889ab, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 3130cca330e8b6f4cb0bb6948ee43c3f, type: 3}
   m_IsPrefabParent: 0

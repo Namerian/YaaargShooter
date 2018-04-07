@@ -9,6 +9,10 @@ namespace YaaargShooter
     {
         // -- CONSTANTS
 
+        [Header("Character")]
+        [SerializeField] private Rigidbody Rigidbody;
+        [SerializeField] private Animator Animator;
+
         private const float DeadZone = 0.01f;
 
         public abstract float MaximumForwardWalkingSpeed { get; }
@@ -21,18 +25,22 @@ namespace YaaargShooter
 
         // -- ATTRIBUTES
 
-        [Header("Character")]
-        [SerializeField] private Rigidbody Rigidbody;
-
         public Transform Transform { get; private set; }
 
         private E_CHARACTER_STATE State;
         public float Health { get; private set; }
 
-        public Vector3 Velocity { get; protected set; }
-        public Quaternion TargetRotation { get; protected set; }
+        /// <summary>
+        /// The velocity of the character in world space.
+        /// </summary>
+        protected Vector3 Velocity { get; set; }
+        /// <summary>
+        /// The direction the character wants to face.
+        /// </summary>
+        protected Quaternion TargetRotation { get; set; }
 
         private float AttackDelayTimer;
+        protected bool WantsToAttack { get; set; }
 
         // -- CONSTRUCTORS
 
@@ -50,7 +58,23 @@ namespace YaaargShooter
 
         // -- OPERATIONS
 
-        protected abstract void OnUpdate();
+        public void Hit(string attacker_tag, int damage)
+        {
+            if (attacker_tag == tag)
+            {
+                return;
+            }
+
+            Health -= damage;
+
+            if (Health <= 0)
+            {
+                // DIE
+            }
+        }
+
+        protected abstract void OnUpdate(float deltaTime);
+        protected abstract void DoAttack();
 
         private void Update()
         {
@@ -59,9 +83,18 @@ namespace YaaargShooter
                 AttackDelayTimer = Mathf.Clamp(AttackDelayTimer - Time.deltaTime, 0, float.MaxValue);
             }
 
-            OnUpdate();
+            OnUpdate(Time.deltaTime);
+
+            if(AttackDelayTimer == 0 && WantsToAttack)
+            {
+                DoAttack();
+                AttackDelayTimer = AttackDelay;
+                WantsToAttack = false;
+            }
 
             Turn();
+
+            HandleAnimations();
         }
 
         private void FixedUpdate()
@@ -71,40 +104,43 @@ namespace YaaargShooter
 
         private void Move(float deltaTime)
         {
-            //Debug.Log(Velocity);
-            //Rigidbody.velocity = Velocity;
             Transform.Translate(Transform.InverseTransformDirection(Velocity * deltaTime));
         }
 
         private void Turn()
         {
+            
             Transform.rotation = TargetRotation;
         }
 
-        public void OnHit(string attacker_tag, int damage)
+        public void HandleAnimations()
         {
-            if(attacker_tag == tag)
+            Vector3 velocity_projected_forward = Vector3.Project(Velocity, Transform.forward);
+            Vector3 velocity_projected_sideways = Vector3.Project(Velocity, Transform.right);
+
+            float animator_forward = 0;
+            float animator_sideways = 0;
+
+            if(Vector3.Dot(Transform.forward, velocity_projected_forward) > 0)
             {
-                return;
+                animator_forward = Mathf.Clamp(velocity_projected_forward.magnitude / MaximumForwardRunningSpeed, 0, 1);
+            }
+            else
+            {
+                animator_forward = Mathf.Clamp(-(velocity_projected_forward.magnitude / MaximumForwardWalkingSpeed), -1, 0);
             }
 
-            Health -= damage;
-
-            if(Health <= 0)
+            if(Vector3.Dot(Transform.right, velocity_projected_sideways) > 0)
             {
-                // DIE
+                animator_sideways = Mathf.Clamp(velocity_projected_sideways.magnitude / MaximumSidewaysWalkingSpeed, 0, 1);
             }
+            else
+            {
+                animator_sideways = Mathf.Clamp(-(velocity_projected_sideways.magnitude / MaximumSidewaysWalkingSpeed), -1, 0);
+            }
+
+            Animator.SetFloat("Forward", animator_forward);
+            Animator.SetFloat("Sideways", animator_sideways);
         }
-
-        protected void Attack()
-        {
-            if (AttackDelayTimer == 0)
-            {
-                DoAttack();
-                AttackDelayTimer = AttackDelay;
-            }
-        }
-
-        protected abstract void DoAttack();
     }
 }    // end of namespace

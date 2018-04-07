@@ -8,13 +8,11 @@ namespace YaaargShooter
     {
         // -- ATTRIBUTES
 
-        [SerializeField] private HERO Hero;
-        [SerializeField] private Transform Pivot;
+        [SerializeField] public HERO Hero;
+        [SerializeField] public Transform Pivot;
 
-        [SerializeField] private float MaximumXAngle = 30;
-        [SerializeField] private float MinimumXAngle = -30;
-
-        public Transform Transform { get; private set; }
+        [SerializeField] public float MaximumXAngle = 30;
+        [SerializeField] public float MinimumXAngle = -30;
 
         private float OrbitXAngle;
 
@@ -22,7 +20,6 @@ namespace YaaargShooter
 
         private void Start()
         {
-            Transform = transform;
         }
 
         // -- OPERATIONS
@@ -44,8 +41,8 @@ namespace YaaargShooter
 
         private void Follow()
         {
-            Transform.position = Vector3.Lerp(Transform.position, Hero.transform.position, Time.deltaTime * 6);
-            Transform.rotation = Hero.transform.rotation;
+            transform.position = Vector3.Lerp(transform.position, Hero.transform.position, Time.deltaTime * 6);
+            transform.rotation = Hero.transform.rotation;
         }
     }
 }    // end of namespace

@@ -68,7 +68,7 @@ Transform:
   m_GameObject: {fileID: 1397314843334678}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 4610438143141504}
   m_RootOrder: 0
@@ -145,7 +145,6 @@ MonoBehaviour:
   Damage: 25
   LifeTime: 6
   ImpactPrefab: {fileID: 100014, guid: 6bd5e996bf032e747a4b787daf85302f, type: 2}
-  Transform: {fileID: 0}
   OwnerTag: 
 --- !u!136 &136582857938435978
 CapsuleCollider:

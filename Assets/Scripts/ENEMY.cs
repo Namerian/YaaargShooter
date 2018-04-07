@@ -42,17 +42,7 @@ namespace YaaargShooter
                 }
                 else
                 {
-                    Vector3 hero_position = Game.Hero.transform.position;
-                    hero_position.y = transform.position.y;
-                    Vector3 direction_to_hero = hero_position - transform.position;
-
-                    Vector3 new_desired_velocity = Vector3.Project(direction_to_hero, transform.forward);
-                    new_desired_velocity = Vector3.ClampMagnitude(new_desired_velocity, MaxForwardSpeed);
-                    DesiredVelocity = new_desired_velocity;
-
-                    float rotation_to_hero = Vector3.SignedAngle(transform.forward, direction_to_hero, Vector3.up);
-                    rotation_to_hero = Mathf.Clamp(rotation_to_hero, -MaxTurningSpeed, MaxTurningSpeed);
-                    DesiredRotation *= Quaternion.Euler(0, rotation_to_hero, 0);
+                    FollowHero();
                 }
             }
         }
@@ -91,5 +81,20 @@ namespace YaaargShooter
 
             return false;
         }
+
+        private void FollowHero()
+        {
+            Vector3 hero_position = Game.Hero.transform.position;
+            hero_position.y = transform.position.y;
+            Vector3 direction_to_hero = hero_position - transform.position;
+
+            Vector3 new_desired_velocity = Vector3.Project(direction_to_hero, transform.forward);
+            new_desired_velocity = Vector3.ClampMagnitude(new_desired_velocity, MaxForwardSpeed);
+            DesiredVelocity = new_desired_velocity;
+
+            float rotation_to_hero = Vector3.SignedAngle(transform.forward, direction_to_hero, Vector3.up);
+            rotation_to_hero = Mathf.Clamp(rotation_to_hero, -MaxTurningSpeed, MaxTurningSpeed);
+            DesiredRotation *= Quaternion.Euler(0, rotation_to_hero, 0);
+        }
     }
-}
+}    // end of namespace

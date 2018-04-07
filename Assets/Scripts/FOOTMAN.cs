@@ -6,14 +6,21 @@ namespace YaaargShooter
 {
     public class FOOTMAN : ENEMY
     {
+        // -- ATTRIBUTES
+
+        [Header("Footman")]
         [SerializeField] public float AttackRange = 2;
         [SerializeField] public int AttackDamage = 25;
         [SerializeField] public float FootmanHeight = 1;
+
+        // -- CONSTRUCTORS
 
         protected override void Start()
         {
             base.Start();
         }
+
+        // -- OPERATIONS
 
         protected override bool CheckWantsToAttack()
         {
@@ -23,7 +30,7 @@ namespace YaaargShooter
 
             foreach (var hit in box_cast_hits)
             {
-                if(hit.collider.tag == "Player")
+                if (hit.collider.tag == "Player")
                 {
                     return true;
                 }

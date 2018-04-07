@@ -71,6 +71,10 @@ namespace YaaargShooter
             {
                 return;
             }
+            else if(CurrentState == E_CHARACTER_STATE.DEAD)
+            {
+                return;
+            }
 
             Health -= damage;
 
